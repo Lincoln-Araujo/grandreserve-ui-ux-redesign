@@ -1,0 +1,30 @@
+/* index.css */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Fundo institucional UNFCCC */
+body {
+  background-color: #f5f7fa;
+  @apply text-base text-gray-900;
+}
+
+/* Foco visível e institucional */
+:focus {
+  outline: 2px solid #003366 !important;
+  outline-offset: 2px;
+}
+
+/* Barra de rolagem mais discreta */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #e5e7eb;
+}
+::-webkit-scrollbar-thumb {
+  background: #9ca3af;
+  border-radius: 4px;
+}
