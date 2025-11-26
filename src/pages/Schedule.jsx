@@ -168,23 +168,28 @@ export default function Schedule() {
     <div className="w-full max-w-[1600px] mx-auto px-6 py-6">
 
       {/* Layout de filtros + timeline */}
-      <div className="flex gap-6 flex-col xl:flex-row transition-all duration-700 ease-in-out">
+      <div className={`
+        flex flex-col xl:flex-row
+        transition-all duration-700 ease-in-out
+        ${filtersOpen ? "gap-6" : "gap-0"}
+      `}>
 
         {/* ----------- FILTROS ----------- */}
         {(!isMobile || filtersOpen) && (
           <aside
             className={`
-              bg-white border border-gray-200 rounded-lg shadow-sm p-6 h-fit shrink-0
-              w-full            
-              xl:w-72          
-              transition-all duration-700 ease-in-out
-              ${!isMobile && !filtersOpen ? 
-                "xl:w-0 xl:opacity-0 xl:p-0 xl:border-0 xl:shadow-none" 
-                : ""}
+              bg-white rounded-lg shadow-sm h-fit shrink-0 overflow-hidden
+              transition-[width,opacity,padding,border] duration-500 ease-in-out
+              w-full
+              ${
+                filtersOpen
+                  ? "xl:w-72 xl:opacity-100 p-6 xl:p-6 xl:border xl:border-gray-200"
+                  : "xl:w-0 xl:opacity-0 xl:p-0 xl:border-0 xl:shadow-none xl:pointer-events-none"
+              }
             `}
           >
-            {filtersOpen && (
-              <div
+          {filtersOpen && (
+            <div
                 className="
                   space-y-4
                   md:space-y-0 md:grid md:grid-cols-2 md:gap-4
@@ -300,12 +305,13 @@ export default function Schedule() {
                   Clear filters
                 </button>
               </div>
-            )}
+          )}
+              
           </aside>
         )}
 
         {/* ----------- TIMELINE / MOBILE LIST ----------- */}
-        <div className="flex-1 w-full transition-all duration-700 ease-in-out">
+        <div className="flex-1 w-full transition-all duration-700 ease-in-out timeline-component">
 
           {!filtersOpen && !isMobile && (
             <button
@@ -337,6 +343,7 @@ export default function Schedule() {
               scheduleData={scheduleData}
               dateLabel={dateLabel}
               onSelectEvent={setSelectedEvent}
+              fullWidth={!filtersOpen && !isMobile}
             />
           )}
         </div>

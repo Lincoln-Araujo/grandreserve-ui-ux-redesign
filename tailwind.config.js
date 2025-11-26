@@ -1,5 +1,12 @@
 export default {
   content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
+  safelist: [
+    "w-full",
+    "max-w-[1200px]",
+    "mx-auto",
+    "gap-0",
+    "gap-6",
+  ],
   theme: {
     extend: {
       colors: {

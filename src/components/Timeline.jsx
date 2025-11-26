@@ -4,7 +4,7 @@ import { createPortal } from "react-dom";
 import { typeColors } from "../data/typeColors";
 import { statusConfig } from "../data/statusConfig";
 
-export default function Timeline({ scheduleData, onSelectEvent, dateLabel }) {
+export default function Timeline({ scheduleData, onSelectEvent, dateLabel, fullWidth = false }) {
   const [showLegend, setShowLegend] = useState(false);
   const [hovered, setHovered] = useState(null);
   const [isHoveringTooltip, setIsHoveringTooltip] = useState(false);
@@ -168,7 +168,9 @@ export default function Timeline({ scheduleData, onSelectEvent, dateLabel }) {
   };
 
   return (
-    <div className="w-full">
+    <div className={`
+      ${fullWidth ? "w-full" : "mx-auto"}
+    `}>
       {/* Data + Show legend */}
       <div className="flex items-center justify-between mb-3">
         <div className="mb-0">

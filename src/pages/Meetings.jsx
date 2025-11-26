@@ -37,7 +37,7 @@ export default function Meetings() {
   }, [date, roomFilter, typeFilter, securityFilter]);
 
   return (
-    <div className="p-6">
+    <div className="w-full max-w-[1600px] mx-auto px-6 py-6">
       <header className="mb-4">
         <h1 className="text-lg font-semibold text-gray-900">Meetings</h1>
         <p className="text-sm text-gray-600">
