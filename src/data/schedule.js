@@ -610,5 +610,39 @@ export const scheduleEvents = [
       options: { record: false, webcast: false, archive: false },
       security: "restricted",
     },
+    {
+      id: 51,
+      title: "UNFCCC daily press briefing",
+      roomId: "press-1",
+      roomName: "Press Conference Room 1",
+      start: "2025-11-17T01:00:00",
+      end: "2025-11-17T02:30:00",
+      type: "press",
+      status: "confirmed",
+      options: { record: true, webcast: false, archive: true },
+      security: "restricted",
+    },
+    {
+      id: 52,
+      title: "Final coordination – G78 and Japan",
+      roomId: "coordination",
+      roomName: "Coordination Room",
+      start: "2025-11-17T23:00:00",
+      end: "2025-11-18T00:00:00",
+      type: "coordination",
+      status: "confirmed",
+      options: { record: false, webcast: false, archive: false },
+      security: "restricted",
+    },
+    {
+      "id": "test-midnight",
+      "roomId": "meeting-19",
+      "roomName": "Meeting Room 19",
+      "title": "Cross-midnight test",
+      "start": "2025-11-17T23:30:00",
+      "end": "2025-11-18T00:30:00",
+      "type": "meeting",
+      "status": "confirmed"
+    }
   ];
   

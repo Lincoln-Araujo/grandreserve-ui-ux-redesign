@@ -161,6 +161,8 @@ export default function Schedule() {
 
   const dateLabel = date ? formatDateLong(date) : "";
 
+  const hasEvents = scheduleData.length > 0;
+
   /* -----------------------------
      RENDER
   ----------------------------- */
@@ -181,6 +183,7 @@ export default function Schedule() {
               bg-white rounded-lg shadow-sm h-fit shrink-0 overflow-hidden
               transition-[width,opacity,padding,border] duration-500 ease-in-out
               w-full
+              xl:sticky xl:top-6
               ${
                 filtersOpen
                   ? "xl:w-72 xl:opacity-100 p-6 xl:p-6 xl:border xl:border-gray-200"
@@ -333,7 +336,11 @@ export default function Schedule() {
             </button>
           )}
 
-          {isMobile ? (
+          {!hasEvents ? (
+            <div className="text-sm text-gray-500 border border-dashed border-gray-300 rounded-lg p-4">
+              No events match the selected filters.
+            </div>
+          ) : isMobile ? (
             <MobileSchedule
               scheduleData={scheduleData}
               onSelectEvent={setSelectedEvent}
