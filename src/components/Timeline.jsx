@@ -1,5 +1,5 @@
 // src/components/Timeline.jsx
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef, useEffect  } from "react";
 import { createPortal } from "react-dom";
 import { typeColors } from "../data/typeColors";
 import { statusConfig } from "../data/statusConfig";
@@ -8,6 +8,10 @@ export default function Timeline({ scheduleData, onSelectEvent, dateLabel, fullW
   const [showLegend, setShowLegend] = useState(false);
   const [hovered, setHovered] = useState(null);
   const [isHoveringTooltip, setIsHoveringTooltip] = useState(false);
+  const scrollRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
 
   const allEvents = useMemo(
     () => scheduleData.flatMap((room) => room.events),
@@ -81,6 +85,35 @@ export default function Timeline({ scheduleData, onSelectEvent, dateLabel, fullW
     };
   }, [allEvents]);
 
+  const updateScrollButtons = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const { scrollLeft, clientWidth, scrollWidth } = el;
+
+    setCanScrollLeft(scrollLeft > 0);
+    setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 1);
+  };
+
+  useEffect(() => {
+    updateScrollButtons();
+  }, [scheduleData, hoursDisplay]);
+
+  const handleScroll = () => {
+    updateScrollButtons();
+  };
+
+  const scrollByAmount = (direction) => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const amount = el.clientWidth * 0.5; // rola metade da largura visível
+    el.scrollBy({
+      left: direction * amount,
+      behavior: "smooth",
+    });
+  };
+
   // -------------------------------------------------------------------
 
   const formatHour = (h) => `${String(h).padStart(2, "0")}:00`;
@@ -103,8 +136,12 @@ export default function Timeline({ scheduleData, onSelectEvent, dateLabel, fullW
       endMin += 24 * 60;
     }
 
+    endMin = Math.min(endMin, totalMinutes);
+
+    const duration = Math.max(endMin - startMin, 0);
+
     const left = (startMin / totalMinutes) * 100;
-    const width = ((endMin - startMin) / totalMinutes) * 100;
+    const width = (duration / totalMinutes) * 100;
 
     return {
       left: `${left}%`,
@@ -273,10 +310,19 @@ export default function Timeline({ scheduleData, onSelectEvent, dateLabel, fullW
         </div>
       </div>
 
+      
       {/* TIMELINE */}
-      <div className="w-full overflow-x-auto border border-gray-200 rounded-lg bg-white shadow-sm">
+      <div
+        className="
+          relative
+          border border-gray-200 rounded-lg bg-white shadow-sm
+          min-h-[320px]                         /* altura mínima confortável */
+          max-h-[calc(100vh-220px)]             /* ocupa o espaço “que sobrou” */
+          overflow-x-auto
+          overflow-y-auto
+        "
+      >
         <div className="min-w-[900px]">
-
           {scheduleData.map((room) => (
             <div
               key={room.roomId || room.room}
@@ -288,12 +334,8 @@ export default function Timeline({ scheduleData, onSelectEvent, dateLabel, fullW
                 <span className="text-xs text-gray-600">|</span>
                 {room.meta && (
                   <div className="text-xs text-gray-600">
-                    {room.meta.capacity && (
-                      <span>{room.meta.capacity}</span>
-                    )}
-                    {room.meta.capacity && room.meta.area && (
-                      <span> — </span>
-                    )}
+                    {room.meta.capacity && <span>{room.meta.capacity}</span>}
+                    {room.meta.capacity && room.meta.area && <span> — </span>}
                     {room.meta.area && <span>{room.meta.area}</span>}
                   </div>
                 )}
@@ -302,7 +344,6 @@ export default function Timeline({ scheduleData, onSelectEvent, dateLabel, fullW
               {/* Timeline Row */}
               <div className="flex-1 px-3 py-4 pr-4">
                 <div className="relative h-10">
-
                   {/* Background grid */}
                   <div className="absolute inset-0 flex">
                     {hoursDisplay.map((h, idx) => (
@@ -315,10 +356,9 @@ export default function Timeline({ scheduleData, onSelectEvent, dateLabel, fullW
                     ))}
                   </div>
 
-                  {/* Event blocks */}
+                  {/* Event blocks (mantém exatamente como você já tem) */}
                   {room.events.map((ev) => {
-                    const statusMeta =
-                      statusConfig[ev.status] || statusConfig.confirmed;
+                    const statusMeta = statusConfig[ev.status] || statusConfig.confirmed;
                     const StatusIcon = statusMeta.icon;
 
                     return (
@@ -328,8 +368,7 @@ export default function Timeline({ scheduleData, onSelectEvent, dateLabel, fullW
                         className="group absolute top-0 h-10 rounded-sm shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[#003366]"
                         style={{
                           ...getBlockStyle(ev),
-                          backgroundColor:
-                            typeColors[ev.type] || typeColors.other,
+                          backgroundColor: typeColors[ev.type] || typeColors.other,
                         }}
                         onClick={() => onSelectEvent && onSelectEvent(ev)}
                         onMouseEnter={(e) => handleMouseEnter(ev, e)}
@@ -342,9 +381,9 @@ export default function Timeline({ scheduleData, onSelectEvent, dateLabel, fullW
                         onBlur={handleMouseLeave}
                         aria-label={`${ev.title}, ${statusMeta.label}, ${ev.start_local}–${ev.end_local}`}
                       >
-                        <span className="absolute bottom-1 right-1 inline-flex items-center justify-center bg-white border border-gray-300 rounded-full w-6 h-6 shadow-sm">
+                        <span className="absolute bottom-1 right-1 flex items-center justify-center bg-white border border-gray-300 rounded-full w-6 h-6 sm:w-5 sm:h-5 shadow-sm">
                           <StatusIcon
-                            className="w-4 h-4"
+                            className="w-3 h-3 sm:w-4 sm:h-4"
                             style={{ color: statusMeta.color }}
                             aria-hidden="true"
                           />
@@ -355,25 +394,24 @@ export default function Timeline({ scheduleData, onSelectEvent, dateLabel, fullW
                 </div>
 
                 {/* Hour labels */}
-                <div className="mt-3 flex flex-wrap text-[11px] text-gray-600">
+                <div className="mt-3 flex text-[11px] text-gray-600">
                   {hoursDisplay.map((h) => (
                     <div
                       key={`hour-${room.room}-${h}`}
-                      className="flex-1 min-w-[48px] text-center"
+                      className="flex-1 min-w-[24px] text-center whitespace-nowrap"
                     >
                       {formatHour(h)}
                     </div>
                   ))}
                 </div>
-
               </div>
             </div>
           ))}
-
         </div>
+
+        {renderTooltip()}
       </div>
 
-      {renderTooltip()}
     </div>
   );
 }
