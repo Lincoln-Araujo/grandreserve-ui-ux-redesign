@@ -18,7 +18,7 @@ import {
       color: "#F59E0B", // amarelo
     },
     tbc: {
-      label: "To be confirmed",
+      label: "to be confirmed",
       icon: ExclamationTriangleIcon,
       color: "#FB923C", // laranja
     },

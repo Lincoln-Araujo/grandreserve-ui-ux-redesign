@@ -1,17 +1,17 @@
 // src/components/Timeline.jsx
-import { useMemo, useState, useRef, useEffect  } from "react";
+import { useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { typeColors } from "../data/typeColors";
 import { statusConfig } from "../data/statusConfig";
 
-export default function Timeline({ scheduleData, onSelectEvent, dateLabel, fullWidth = false }) {
+export default function Timeline({
+  scheduleData,
+  onSelectEvent,
+  fullWidth = false,
+}) {
   const [showLegend, setShowLegend] = useState(false);
   const [hovered, setHovered] = useState(null);
   const [isHoveringTooltip, setIsHoveringTooltip] = useState(false);
-  const scrollRef = useRef(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(false);
-
 
   const allEvents = useMemo(
     () => scheduleData.flatMap((room) => room.events),
@@ -22,15 +22,17 @@ export default function Timeline({ scheduleData, onSelectEvent, dateLabel, fullW
     return <p className="text-sm text-gray-500">No events for this date.</p>;
   }
 
+  const totalEvents = allEvents.length;
+
   // -------------------------------------------------------------------
-  // HORAS DINÂMICAS (CORRIGIDAS)
+  // HORAS DINÂMICAS
   // -------------------------------------------------------------------
   const { hoursDisplay, dayStartHour, totalMinutes } = useMemo(() => {
     if (!allEvents.length) {
       return {
         hoursDisplay: [],
         dayStartHour: 8,
-        totalMinutes: 720, // 12h default
+        totalMinutes: 720,
       };
     }
 
@@ -45,9 +47,9 @@ export default function Timeline({ scheduleData, onSelectEvent, dateLabel, fullW
       let endMinutes = end.getHours() * 60 + end.getMinutes();
 
       const crossesMidnight =
-      end.getFullYear() !== start.getFullYear() ||
-      end.getMonth() !== start.getMonth() ||
-      end.getDate() !== start.getDate();
+        end.getFullYear() !== start.getFullYear() ||
+        end.getMonth() !== start.getMonth() ||
+        end.getDate() !== start.getDate();
 
       if (crossesMidnight) {
         endMinutes += 24 * 60;
@@ -66,9 +68,7 @@ export default function Timeline({ scheduleData, onSelectEvent, dateLabel, fullW
     }
 
     const dayStartHour = Math.floor(minStart / 60);
-
     const lastHour = Math.ceil(maxEnd / 60);
-
     const dayEndHour = Math.min(lastHour + 1, 24);
 
     const hoursDisplay = [];
@@ -84,37 +84,6 @@ export default function Timeline({ scheduleData, onSelectEvent, dateLabel, fullW
       totalMinutes,
     };
   }, [allEvents]);
-
-  const updateScrollButtons = () => {
-    const el = scrollRef.current;
-    if (!el) return;
-
-    const { scrollLeft, clientWidth, scrollWidth } = el;
-
-    setCanScrollLeft(scrollLeft > 0);
-    setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 1);
-  };
-
-  useEffect(() => {
-    updateScrollButtons();
-  }, [scheduleData, hoursDisplay]);
-
-  const handleScroll = () => {
-    updateScrollButtons();
-  };
-
-  const scrollByAmount = (direction) => {
-    const el = scrollRef.current;
-    if (!el) return;
-
-    const amount = el.clientWidth * 0.5; // rola metade da largura visível
-    el.scrollBy({
-      left: direction * amount,
-      behavior: "smooth",
-    });
-  };
-
-  // -------------------------------------------------------------------
 
   const formatHour = (h) => `${String(h).padStart(2, "0")}:00`;
 
@@ -137,7 +106,6 @@ export default function Timeline({ scheduleData, onSelectEvent, dateLabel, fullW
     }
 
     endMin = Math.min(endMin, totalMinutes);
-
     const duration = Math.max(endMin - startMin, 0);
 
     const left = (startMin / totalMinutes) * 100;
@@ -230,26 +198,27 @@ export default function Timeline({ scheduleData, onSelectEvent, dateLabel, fullW
     );
   };
 
-  // -------------------------------------------------------------------
+  const legendId = "timeline-legend";
 
+  // -------------------------------------------------------------------
+  // RENDER
+  // -------------------------------------------------------------------
   return (
     <div className={`${fullWidth ? "w-full" : "mx-auto"}`}>
-
-      {/* Header */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="mb-0">
-          <h2 className="text-base sm:text-lg font-semibold text-gray-900">
-            Schedule for {dateLabel}
-          </h2>
-          <p className="text-sm text-gray-600">
-            Unified schedule for all rooms and event types
-          </p>
-        </div>
+      {/* Barra estilo Meetings: contagem + botão Show legend */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-4 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm">
+        <span className="text-xs text-gray-600" aria-live="polite">
+          Showing{" "}
+          <span className="font-semibold">{totalEvents}</span>{" "}
+          {totalEvents === 1 ? "event" : "events"}.
+        </span>
 
         <button
           type="button"
           onClick={() => setShowLegend((v) => !v)}
           className="text-xs sm:text-sm px-3 py-1.5 border border-gray-300 rounded-full bg-white hover:bg-gray-50 shadow-sm transition-all duration-700 ease-in-out"
+          aria-expanded={showLegend}
+          aria-controls={legendId}
         >
           {showLegend ? "Hide legend" : "Show legend"}
         </button>
@@ -257,8 +226,11 @@ export default function Timeline({ scheduleData, onSelectEvent, dateLabel, fullW
 
       {/* Legend */}
       <div
+        id={legendId}
         className={`overflow-hidden transition-all duration-700 ease-in-out ${
-          showLegend ? "max-h-[420px] opacity-100 mb-4" : "max-h-0 opacity-0 mb-0"
+          showLegend
+            ? "max-h-[420px] opacity-100 mb-4"
+            : "max-h-0 opacity-0 mb-0"
         }`}
       >
         <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
@@ -310,14 +282,13 @@ export default function Timeline({ scheduleData, onSelectEvent, dateLabel, fullW
         </div>
       </div>
 
-      
       {/* TIMELINE */}
       <div
         className="
           relative
           border border-gray-200 rounded-lg bg-white shadow-sm
-          min-h-[320px]                         /* altura mínima confortável */
-          max-h-[calc(100vh-220px)]             /* ocupa o espaço “que sobrou” */
+          min-h-[320px]
+          max-h-[calc(100vh-310px)]
           overflow-x-auto
           overflow-y-auto
         "
@@ -356,9 +327,10 @@ export default function Timeline({ scheduleData, onSelectEvent, dateLabel, fullW
                     ))}
                   </div>
 
-                  {/* Event blocks (mantém exatamente como você já tem) */}
+                  {/* Event blocks */}
                   {room.events.map((ev) => {
-                    const statusMeta = statusConfig[ev.status] || statusConfig.confirmed;
+                    const statusMeta =
+                      statusConfig[ev.status] || statusConfig.confirmed;
                     const StatusIcon = statusMeta.icon;
 
                     return (
@@ -368,7 +340,8 @@ export default function Timeline({ scheduleData, onSelectEvent, dateLabel, fullW
                         className="group absolute top-0 h-10 rounded-sm shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[#003366]"
                         style={{
                           ...getBlockStyle(ev),
-                          backgroundColor: typeColors[ev.type] || typeColors.other,
+                          backgroundColor:
+                            typeColors[ev.type] || typeColors.other,
                         }}
                         onClick={() => onSelectEvent && onSelectEvent(ev)}
                         onMouseEnter={(e) => handleMouseEnter(ev, e)}
@@ -411,7 +384,6 @@ export default function Timeline({ scheduleData, onSelectEvent, dateLabel, fullW
 
         {renderTooltip()}
       </div>
-
     </div>
   );
 }
