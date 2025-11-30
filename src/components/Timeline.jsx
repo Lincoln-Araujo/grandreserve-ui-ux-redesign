@@ -216,9 +216,19 @@ export default function Timeline({
         <button
           type="button"
           onClick={() => setShowLegend((v) => !v)}
-          className="text-xs sm:text-sm px-3 py-1.5 border border-gray-300 rounded-full bg-white hover:bg-gray-50 shadow-sm transition-all duration-700 ease-in-out"
           aria-expanded={showLegend}
           aria-controls={legendId}
+          className={`
+            inline-flex items-center justify-center
+            px-3 py-1 text-xs 
+            rounded-full border
+            transition-colors duration-200
+            ${
+              showLegend
+                ? "bg-[#003366] text-white border-[#003366]"
+                : "bg-white text-gray-800 border-gray-300 hover:bg-gray-50"
+            }
+          `}
         >
           {showLegend ? "Hide legend" : "Show legend"}
         </button>

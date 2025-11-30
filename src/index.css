@@ -10,10 +10,23 @@ body {
   @apply text-base text-gray-900;
 }
 
+html,
+body,
+#root {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 /* Foco visível e institucional */
 :focus {
   outline: 2px solid #003366 !important;
   outline-offset: 2px;
+}
+
+.segmented-toggle button:focus,
+.segmented-toggle button:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 /* Barra de rolagem mais discreta */

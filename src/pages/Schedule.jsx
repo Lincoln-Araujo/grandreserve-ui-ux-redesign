@@ -5,6 +5,9 @@ import Timeline from "../components/Timeline";
 import PopupDetails from "../components/PopupDetails";
 import MobileSchedule from "../components/MobileSchedule";
 import { normalizeScheduleEvent } from "../utils/normalizeScheduleEvent";
+import SelectChevron from "../components/SelectChevron";
+import { ChevronDownIcon, CalendarDaysIcon  } from "@heroicons/react/24/outline";
+import DateFilter from "../components/DateFilter";
 
 const ROOM_META = {
   "plenary-amazonas": { capacity: "1600 / 596", area: "Area E" },
@@ -57,7 +60,12 @@ function MultiSelectFilter({ label, options, selected, onChange, allLabel }) {
       <div className="relative">
         <button
           type="button"
-          className="w-full border border-gray-300 rounded px-3 py-2 text-left flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#003366] bg-white"
+          className="
+            w-full border border-gray-300 rounded 
+            px-3 pr-9 py-2 text-left 
+            flex items-center
+            focus:outline-none focus:ring-2 focus:ring-[#003366] bg-white
+          "
           onClick={() => setOpen((o) => !o)}
           aria-haspopup="listbox"
           aria-expanded={open}
@@ -65,8 +73,13 @@ function MultiSelectFilter({ label, options, selected, onChange, allLabel }) {
           <span className="truncate text-xs text-gray-800">
             {summaryLabel}
           </span>
-          <span aria-hidden="true" className="ml-2 text-gray-500 text-[10px]">
-            ▾
+
+          {/* setinha alinhada e afastada da borda */}
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-500"
+          >
+            <ChevronDownIcon className="w-4 h-4" />
           </span>
         </button>
 
@@ -115,6 +128,101 @@ function MultiSelectFilter({ label, options, selected, onChange, allLabel }) {
     </div>
   );
 }
+
+function SingleSelectFilter({ label, options, value, onChange, Icon }) {
+  const [open, setOpen] = useState(false);
+
+  const currentLabel =
+    options.find((opt) => opt.value === value)?.label ||
+    options[0]?.label ||
+    "";
+
+  const handleBlur = (e) => {
+    if (!e.currentTarget.contains(e.relatedTarget)) {
+      setOpen(false);
+    }
+  };
+
+  return (
+    <div className="text-sm" onBlur={handleBlur}>
+      <label className="block text-xs font-semibold uppercase text-gray-600 mb-1">
+        {label}
+      </label>
+
+      <div className="relative">
+        <button
+          type="button"
+          className="
+            w-full border border-gray-300 rounded 
+            px-3 pr-9 py-2 text-left 
+            flex items-center
+            focus:outline-none focus:ring-2 focus:ring-[#003366] bg-white
+          "
+          onClick={() => setOpen((o) => !o)}
+          aria-haspopup="listbox"
+          aria-expanded={open}
+        >
+          <div className="flex items-center gap-2">
+            {Icon && (
+              <Icon
+                className="w-4 h-4 text-gray-400"
+                aria-hidden="true"
+              />
+            )}
+            <span className="truncate text-xs text-gray-800">
+              {currentLabel}
+            </span>
+          </div>
+
+          {/* setinha igual aos outros dropdowns */}
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-500"
+          >
+            <ChevronDownIcon className="w-4 h-4" />
+          </span>
+        </button>
+
+        {open && (
+          <div
+            className="
+              absolute z-20 mt-1 w-full 
+              bg-white border border-gray-200 rounded shadow-lg
+              max-h-52 overflow-auto
+            "
+            role="listbox"
+          >
+            {options.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                className={`
+                  w-full text-left px-3 py-2 text-xs 
+                  flex items-center justify-between
+                  hover:bg-gray-50
+                  ${value === opt.value ? "bg-gray-50" : ""}
+                `}
+                onClick={() => {
+                  onChange(opt.value);
+                  setOpen(false);
+                }}
+              >
+                <span>{opt.label}</span>
+                {value === opt.value && (
+                  <span className="text-[10px] text-gray-500">
+                    (current)
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
 
 /* -----------------------------
    FORMATOS DE DATA
@@ -192,6 +300,11 @@ export default function Schedule() {
   );
 
   const allDates = [...new Set(normalized.map((ev) => ev.date))];
+
+  const dateOptions = allDates.map((d) => ({
+    value: d,
+    label: formatDateShort(d),
+  }));
 
   const [date, setDate] = useState(allDates[0] || "");
   const [roomFilter, setRoomFilter] = useState([]); // multi
@@ -292,6 +405,12 @@ export default function Schedule() {
     setRecordOnly(false);
   };
 
+  const securityOptions = [
+    { value: "all",        label: "All" },
+    { value: "open",       label: "Open" },
+    { value: "restricted", label: "Restricted" },
+  ];
+
   // RENDER
   return (
     <div className="w-full max-w-[1600px] mx-auto px-6 py-6">
@@ -315,17 +434,18 @@ export default function Schedule() {
         {/* ----------- FILTROS ----------- */}
         {(!isMobile || filtersOpen) && (
           <aside
-            className={`
-              bg-white rounded-lg shadow-sm h-fit shrink-0 overflow-hidden
-              transition-[width,opacity,padding,border] duration-500 ease-in-out
-              w-full
-              xl:sticky xl:top-6
-              ${
-                filtersOpen
-                  ? "xl:w-72 xl:opacity-100 p-6 xl:p-6 xl:border xl:border-gray-200"
-                  : "xl:w-0 xl:opacity-0 xl:p-0 xl:border-0 xl:shadow-none xl:pointer-events-none"
-              }
-            `}
+             className={`
+                bg-white rounded-lg shadow-sm h-fit shrink-0
+                overflow-visible
+                transition-[width,opacity,padding,border] duration-500 ease-in-out
+                w-full
+                xl:sticky xl:top-6
+                ${
+                  filtersOpen
+                    ? "xl:w-72 xl:opacity-100 p-6 xl:p-6 xl:border xl:border-gray-200"
+                    : "xl:w-0 xl:opacity-0 xl:p-0 xl:border-0 xl:shadow-none xl:pointer-events-none"
+                }
+              `}
           >
             {filtersOpen && (
               <div
@@ -362,22 +482,11 @@ export default function Schedule() {
                 </div>
 
                 {/* Date */}
-                <div>
-                  <label className="block text-xs font-semibold uppercase text-gray-600 mb-1">
-                    Date
-                  </label>
-                  <select
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    className="w-full border border-gray-300 rounded px-3 py-2"
-                  >
-                    {allDates.map((d) => (
-                      <option key={d} value={d}>
-                        {formatDateShort(d)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <DateFilter
+                  label="Date"
+                  value={date}
+                  onChange={(newDate) => setDate(newDate)}
+                />
 
                 {/* Room - multi */}
                 <MultiSelectFilter
@@ -398,20 +507,13 @@ export default function Schedule() {
                 />
 
                 {/* Security */}
-                <div>
-                  <label className="block text-xs font-semibold uppercase text-gray-600 mb-1">
-                    Security
-                  </label>
-                  <select
-                    value={securityFilter}
-                    onChange={(e) => setSecurityFilter(e.target.value)}
-                    className="w-full border border-gray-300 rounded px-3 py-2"
-                  >
-                    <option value="all">All</option>
-                    <option value="open">Open</option>
-                    <option value="restricted">Restricted</option>
-                  </select>
-                </div>
+                <SingleSelectFilter
+                  label="Security"
+                  options={securityOptions}
+                  value={securityFilter}
+                  onChange={setSecurityFilter}
+                />
+
 
                 {/* Recording only */}
                 <label className="flex items-center gap-2">

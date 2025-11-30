@@ -4,12 +4,14 @@ import Schedule from "./pages/Schedule.jsx";
 import Meetings from "./pages/Meetings.jsx";
 import Account from "./pages/Account.jsx";
 import Header from "./components/Header.jsx";
+import Footer from "./components/Footer.jsx";
 
 function LayoutWithHeader({ children }) {
   return (
     <div className="min-h-screen bg-gray-100">
       <Header />
       <main className="w-full max-w-[1800px] mx-auto">{children}</main>
+      <Footer />
     </div>
   );
 }

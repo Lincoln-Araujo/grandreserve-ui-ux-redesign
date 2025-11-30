@@ -4,11 +4,18 @@ import { scheduleEvents } from "../data/schedule";
 import PopupDetails from "../components/PopupDetails.jsx";
 import EventCard from "../components/EventCard.jsx";
 import { normalizeScheduleEvent } from "../utils/normalizeScheduleEvent";
+import DateFilter from "../components/DateFilter";
+import { ChevronDownIcon } from "@heroicons/react/24/outline";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
+import { ArrowDownTrayIcon, DocumentTextIcon } from "@heroicons/react/24/outline";
+
 
 const meetings = scheduleEvents.map(normalizeScheduleEvent);
 
 /* --------------------------------
-   MultiSelectFilter (Room / Type)
+   MultiSelectFilter (Room / Type) – mesmo estilo da Schedule
 -----------------------------------*/
 function MultiSelectFilter({ label, options, selected, onChange, allLabel }) {
   const [open, setOpen] = useState(false);
@@ -29,7 +36,6 @@ function MultiSelectFilter({ label, options, selected, onChange, allLabel }) {
   };
 
   const handleBlur = (e) => {
-    // fecha o dropdown quando o foco sai de todo o componente
     if (!e.currentTarget.contains(e.relatedTarget)) {
       setOpen(false);
     }
@@ -42,10 +48,14 @@ function MultiSelectFilter({ label, options, selected, onChange, allLabel }) {
       </label>
 
       <div className="relative">
-        {/* Botão que parece um select */}
         <button
           type="button"
-          className="w-full border border-gray-300 rounded px-3 py-2 text-left flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#003366] bg-white"
+          className="
+            w-full border border-gray-300 rounded 
+            px-3 pr-9 py-2 text-left 
+            flex items-center
+            focus:outline-none focus:ring-2 focus:ring-[#003366] bg-white
+          "
           onClick={() => setOpen((o) => !o)}
           aria-haspopup="listbox"
           aria-expanded={open}
@@ -53,15 +63,16 @@ function MultiSelectFilter({ label, options, selected, onChange, allLabel }) {
           <span className="truncate text-xs text-gray-800">
             {summaryLabel}
           </span>
+
+          {/* setinha alinhada e afastada da borda */}
           <span
             aria-hidden="true"
-            className="ml-2 text-gray-500 text-[10px]"
+            className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-500"
           >
-            ▾
+            <ChevronDownIcon className="w-4 h-4" />
           </span>
         </button>
 
-        {/* Painel com checkboxes */}
         {open && (
           <div
             className="
@@ -71,13 +82,9 @@ function MultiSelectFilter({ label, options, selected, onChange, allLabel }) {
             "
             role="listbox"
           >
-            {/* “All” = limpar seleção */}
             <button
               type="button"
-              className="
-                w-full text-left px-3 py-2 text-xs
-                hover:bg-gray-50 flex items-center justify-between
-              "
+              className="w-full text-left px-3 py-2 text-xs hover:bg-gray-50 flex items-center justify-between"
               onClick={() => onChange([])}
             >
               <span>{allLabel || "All"}</span>
@@ -113,15 +120,101 @@ function MultiSelectFilter({ label, options, selected, onChange, allLabel }) {
 }
 
 /* --------------------------------
+   SingleSelectFilter (Security) – igual Schedule
+-----------------------------------*/
+function SingleSelectFilter({ label, options, value, onChange }) {
+  const [open, setOpen] = useState(false);
+
+  const currentLabel =
+    options.find((opt) => opt.value === value)?.label ||
+    options[0]?.label ||
+    "";
+
+  const handleBlur = (e) => {
+    if (!e.currentTarget.contains(e.relatedTarget)) {
+      setOpen(false);
+    }
+  };
+
+  return (
+    <div className="text-sm" onBlur={handleBlur}>
+      <label className="block text-xs font-semibold uppercase text-gray-600 mb-1">
+        {label}
+      </label>
+
+      <div className="relative">
+        <button
+          type="button"
+          className="
+            w-full border border-gray-300 rounded 
+            px-3 pr-9 py-2 text-left 
+            flex items-center
+            focus:outline-none focus:ring-2 focus:ring-[#003366] bg-white
+          "
+          onClick={() => setOpen((o) => !o)}
+          aria-haspopup="listbox"
+          aria-expanded={open}
+        >
+          <span className="truncate text-xs text-gray-800">
+            {currentLabel}
+          </span>
+
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-500"
+          >
+            <ChevronDownIcon className="w-4 h-4" />
+          </span>
+        </button>
+
+        {open && (
+          <div
+            className="
+              absolute z-20 mt-1 w-full 
+              bg-white border border-gray-200 rounded shadow-lg
+              max-h-52 overflow-auto
+            "
+            role="listbox"
+          >
+            {options.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                className={`
+                  w-full text-left px-3 py-2 text-xs 
+                  flex items-center justify-between
+                  hover:bg-gray-50
+                  ${value === opt.value ? "bg-gray-50" : ""}
+                `}
+                onClick={() => {
+                  onChange(opt.value);
+                  setOpen(false);
+                }}
+              >
+                <span>{opt.label}</span>
+                {value === opt.value && (
+                  <span className="text-[10px] text-gray-500">
+                    (current)
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* --------------------------------
    Helpers de data
 -----------------------------------*/
 function formatDateLabel(dateStr) {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+  if (!dateStr) return "";
+  const [y, m, d] = dateStr.split("-"); // "2025-11-18"
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  return `${d} ${months[Number(m) - 1]} ${y}`;
 }
 
 function formatDateRangeLabel(start, end) {
@@ -136,7 +229,7 @@ function formatDateRangeLabel(start, end) {
    Componente principal
 -----------------------------------*/
 export default function Meetings() {
-  // Responsividade (igual Schedule)
+  // Responsividade
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== "undefined"
       ? window.matchMedia("(max-width: 767px)").matches
@@ -165,8 +258,8 @@ export default function Meetings() {
 
   const [startDate, setStartDate] = useState(defaultDate);
   const [endDate, setEndDate] = useState(defaultDate);
-  const [roomFilter, setRoomFilter] = useState([]);      // multi-select
-  const [typeFilter, setTypeFilter] = useState([]);      // multi-select
+  const [roomFilter, setRoomFilter] = useState([]);
+  const [typeFilter, setTypeFilter] = useState([]);
   const [securityFilter, setSecurityFilter] = useState("all");
   const [viewMode, setViewMode] = useState("table");
   const [searchTerm, setSearchTerm] = useState("");
@@ -202,18 +295,24 @@ export default function Meetings() {
     [typesList]
   );
 
+  const securityOptions = [
+    { value: "all",        label: "All levels" },
+    { value: "open",       label: "Open" },
+    { value: "restricted", label: "Restricted" },
+  ];
+
   // Aplicação de filtros
   const filtered = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
 
     return meetings.filter((m) => {
-      // Intervalo de datas (inclusive)
       if (startDate && m.date < startDate) return false;
       if (endDate && m.date > endDate) return false;
 
       if (roomFilter.length && !roomFilter.includes(m.roomId)) return false;
       if (typeFilter.length && !typeFilter.includes(m.type)) return false;
-      if (securityFilter !== "all" && m.security !== securityFilter) return false;
+      if (securityFilter !== "all" && m.security !== securityFilter)
+        return false;
 
       if (term && !m.title.toLowerCase().includes(term)) return false;
 
@@ -221,10 +320,96 @@ export default function Meetings() {
     });
   }, [startDate, endDate, roomFilter, typeFilter, securityFilter, searchTerm]);
 
+ // Gera linhas formatadas para export (PDF / Excel)
+  const exportRows = useMemo(() => {
+    return filtered.map((m, idx) => {
+      const start = new Date(m.start);
+      const end = new Date(m.end);
+
+      const timeStart = start.toLocaleTimeString("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      const timeEnd = end.toLocaleTimeString("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+
+      return {
+        "#": idx + 1,
+        Title: m.title,
+        Room: m.roomName,
+        Date: formatDateLabel(m.date),
+        Start: timeStart,
+        End: timeEnd,
+        Type: m.type,
+        Status: m.status,
+        Security: m.security === "restricted" ? "Restricted" : "Open",
+      };
+    });
+  }, [filtered]);
+
+    const handleExportExcel = () => {
+    if (!exportRows.length) return;
+
+    const worksheet = XLSX.utils.json_to_sheet(exportRows);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Meetings");
+
+    const startPart = startDate ? startDate : "all";
+    const endPart = endDate ? endDate : "all";
+    const filename = `meetings_${startPart}_${endPart}.xlsx`;
+
+    XLSX.writeFile(workbook, filename);
+  };
+
+    const handleExportPDF = () => {
+    if (!exportRows.length) return;
+
+    const doc = new jsPDF("l", "pt", "A4"); // landscape
+    doc.setFontSize(11);
+
+    const startPart = startDate ? formatDateLabel(startDate) : "all dates";
+    const endPart = endDate ? formatDateLabel(endDate) : "all dates";
+    const title = `Meetings – ${startPart} to ${endPart}`;
+
+    doc.text(title, 40, 40);
+
+    const head = [
+      ["#", "Title", "Room", "Date", "Start", "End", "Type", "Status", "Security"],
+    ];
+
+    const body = exportRows.map((row) => [
+      row["#"],
+      row.Title,
+      row.Room,
+      row.Date,
+      row.Start,
+      row.End,
+      row.Type,
+      row.Status,
+      row.Security,
+    ]);
+
+    autoTable(doc, {
+      head,
+      body,
+      startY: 60,
+      styles: { fontSize: 8, cellPadding: 4 },
+      headStyles: { fillColor: [0, 51, 102] }, // azul UNFCCC
+      columnStyles: {
+        0: { cellWidth: 20 },
+        1: { cellWidth: 170 },
+      },
+    });
+
+    const filename = `meetings_${startDate || "all"}_${endDate || "all"}.pdf`;
+    doc.save(filename);
+  };
+
   const dateRangeLabel = formatDateRangeLabel(startDate, endDate);
 
   const clearFilters = () => {
-    // Respeita datas escolhidas; limpa apenas filtros de sala/tipo/security/busca
     setRoomFilter([]);
     setTypeFilter([]);
     setSecurityFilter("all");
@@ -235,18 +420,59 @@ export default function Meetings() {
   return (
     <div className="w-full max-w-[1600px] mx-auto px-6 py-6">
       {/* Header */}
-      <header className="mb-4">
-        <h1 className="text-lg font-semibold text-gray-900">Meetings</h1>
-        <p className="text-sm text-gray-600">
-          Tabular or card view of meetings for{" "}
-          <span className="font-semibold">
-            {dateRangeLabel || "the selected period"}
-          </span>
-          .
-        </p>
-      </header>
+      <header className="mb-4 flex w-full flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+  {/* Bloco título + subtítulo */}
+  <div className="flex-1 min-w-0">
+    <h1 className="text-lg font-semibold text-gray-900">Meetings</h1>
+    <p className="text-sm text-gray-600">
+      Tabular or card view of meetings for{" "}
+      <span className="font-semibold">
+        {dateRangeLabel || "the selected period"}
+      </span>
+      .
+    </p>
+  </div>
 
-      {/* Layout filtros + conteúdo (igual vibe da Schedule) */}
+  {/* Botões de export – não encolhem, ficam à direita no desktop */}
+  <div className="flex items-center gap-2 flex-shrink-0">
+    <button
+      type="button"
+      onClick={handleExportPDF}
+      className="
+        inline-flex items-center gap-1
+        rounded-full border border-gray-300
+        px-3 py-1 text-xs font-medium
+        text-[#003366] bg-white
+        hover:bg-[#003366] hover:text-white
+        focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[#003366]
+      "
+    >
+      <DocumentTextIcon className="w-4 h-4" aria-hidden="true" />
+      <span className="hidden sm:inline">Export PDF</span>
+      <span className="sm:hidden">PDF</span>
+    </button>
+
+    <button
+      type="button"
+      onClick={handleExportExcel}
+      className="
+        inline-flex items-center gap-1
+        rounded-full border border-gray-300
+        px-3 py-1 text-xs font-medium
+        text-[#003366] bg-white
+        hover:bg-[#003366] hover:text-white
+        focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[#003366]
+      "
+    >
+      <ArrowDownTrayIcon className="w-4 h-4" aria-hidden="true" />
+      <span className="hidden sm:inline">Export XLSX</span>
+      <span className="sm:hidden">XLSX</span>
+    </button>
+  </div>
+</header>
+
+
+      {/* Layout filtros + conteúdo */}
       <div
         className={`
           flex flex-col xl:flex-row
@@ -258,7 +484,7 @@ export default function Meetings() {
         {(!isMobile || filtersOpen) && (
           <aside
             className={`
-              bg-white rounded-lg shadow-sm h-fit shrink-0 overflow-hidden
+              bg-white rounded-lg shadow-sm h-fit shrink-0 
               transition-[width,opacity,padding,border] duration-500 ease-in-out
               w-full
               xl:sticky xl:top-6
@@ -304,47 +530,24 @@ export default function Meetings() {
                   </button>
                 </div>
 
-                {/* Date range */}
-                <div>
-                  <label
-                    htmlFor="meetings-start-date"
-                    className="block text-xs font-semibold uppercase text-gray-600 mb-1"
-                  >
-                    Start date
-                  </label>
-                  <input
-                    id="meetings-start-date"
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      setStartDate(value);
-                      if (endDate && value && value > endDate) {
-                        setEndDate(value);
-                      }
-                    }}
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#003366]"
-                  />
-                </div>
+                {/* Start date – usando o mesmo DateFilter do Schedule */}
+                <DateFilter
+                  label="Start date"
+                  value={startDate}
+                  onChange={(newDate) => {
+                    setStartDate(newDate);
+                    if (endDate && newDate && newDate > endDate) {
+                      setEndDate(newDate);
+                    }
+                  }}
+                />
 
-                <div>
-                  <label
-                    htmlFor="meetings-end-date"
-                    className="block text-xs font-semibold uppercase text-gray-600 mb-1"
-                  >
-                    End date
-                  </label>
-                  <input
-                    id="meetings-end-date"
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      setEndDate(value);
-                    }}
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#003366]"
-                  />
-                </div>
+                {/* End date */}
+                <DateFilter
+                  label="End date"
+                  value={endDate}
+                  onChange={(newDate) => setEndDate(newDate)}
+                />
 
                 {/* Room (multi-select) */}
                 <MultiSelectFilter
@@ -364,21 +567,13 @@ export default function Meetings() {
                   allLabel="All types"
                 />
 
-                {/* Security */}
-                <div>
-                  <label className="block text-xs font-semibold uppercase text-gray-600 mb-1">
-                    Security
-                  </label>
-                  <select
-                    value={securityFilter}
-                    onChange={(e) => setSecurityFilter(e.target.value)}
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#003366]"
-                  >
-                    <option value="all">All levels</option>
-                    <option value="open">Open</option>
-                    <option value="restricted">Restricted</option>
-                  </select>
-                </div>
+                {/* Security – usando SingleSelectFilter */}
+                <SingleSelectFilter
+                  label="Security"
+                  options={securityOptions}
+                  value={securityFilter}
+                  onChange={setSecurityFilter}
+                />
 
                 {/* Clear filters */}
                 <button
@@ -395,7 +590,6 @@ export default function Meetings() {
 
         {/* ----------- CONTEÚDO ----------- */}
         <section className="flex-1 w-full transition-all duration-700 ease-in-out">
-          {/* Botão para mostrar filtros quando estão escondidos */}
           {!filtersOpen && !isMobile && (
             <button
               type="button"
@@ -417,23 +611,19 @@ export default function Meetings() {
           )}
 
           {/* Barra de contagem + modo de visualização + busca */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm">
-            <span
-              className="text-xs text-gray-600"
-              aria-live="polite"
-            >
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-sm">
+            {/* Contagem */}
+            <span className="text-xs text-gray-600" aria-live="polite">
               Showing{" "}
               <span className="font-semibold">{filtered.length}</span>{" "}
               {filtered.length === 1 ? "meeting" : "meetings"}.
             </span>
 
+            {/* Direita: busca + toggle + export */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
               {/* Busca por título */}
               <div className="flex-1 sm:flex-none">
-                <label
-                  htmlFor="meetings-search"
-                  className="sr-only"
-                >
+                <label htmlFor="meetings-search" className="sr-only">
                   Search meetings by title
                 </label>
                 <input
@@ -446,13 +636,11 @@ export default function Meetings() {
                 />
               </div>
 
-              <div
-                aria-hidden="true"
-                className="hidden sm:block w-px h-6 bg-gray-300"
-              />
+              {/* Divisor */}
+              <div aria-hidden="true" className="hidden sm:block w-px h-6 bg-gray-300" />
 
-              {/* Toggle table/cards – só desktop */}
-              <div className="hidden md:inline-flex rounded-full border border-gray-300 overflow-hidden">
+              {/* Toggle Table/Cards – desktop */}
+              <div className="segmented-toggle hidden md:inline-flex rounded-full border border-gray-300 overflow-hidden">
                 <button
                   type="button"
                   onClick={() => setViewMode("table")}
@@ -481,12 +669,12 @@ export default function Meetings() {
             </div>
           </div>
 
+
           {/* Bloco principal */}
           <div
             className="bg-white rounded-lg shadow-sm border border-gray-200 mt-3"
             aria-label="Meetings list"
           >
-            {/* Sem resultados */}
             {filtered.length === 0 && (
               <div className="p-6 text-sm text-gray-600">
                 No meetings match the selected filters. Try adjusting the date
@@ -556,7 +744,7 @@ export default function Meetings() {
                                     : ""
                                 }
                               `}
-                              onClick={() => setSelected(m)}  // mouse: linha toda clicável
+                              onClick={() => setSelected(m)}
                             >
                               <td className="px-5 py-4 align-middle text-xs text-gray-600">
                                 {idx + 1}
@@ -566,7 +754,7 @@ export default function Meetings() {
                                 <button
                                   type="button"
                                   onClick={(e) => {
-                                    e.stopPropagation(); // evita clique duplo vindo do <tr>
+                                    e.stopPropagation();
                                     setSelected(m);
                                   }}
                                   className="block text-left w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-[#003366] rounded-sm"
@@ -621,7 +809,7 @@ export default function Meetings() {
                   </div>
                 )}
 
-                {/* CARDS DESKTOP (grid) */}
+                {/* CARDS DESKTOP */}
                 {viewMode === "cards" && (
                   <div className="hidden md:grid p-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {filtered.map((m) => (
