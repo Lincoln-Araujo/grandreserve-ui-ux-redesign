@@ -397,7 +397,7 @@ export default function Header() {
               <span className="block sm:inline font-semibold">
                 Belém Climate Change Conference 2025
               </span>
-              <span className="flex-inline">
+              <span className="inline">
                 <span className="hidden sm:inline mx-1">•</span>
                 City Park / Hangar Convention and Exhibition Center
               </span>

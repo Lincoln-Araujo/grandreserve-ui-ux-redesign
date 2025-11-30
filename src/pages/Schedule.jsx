@@ -1,13 +1,14 @@
 // src/pages/Schedule.jsx
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { scheduleEvents } from "../data/schedule";
 import Timeline from "../components/Timeline";
 import PopupDetails from "../components/PopupDetails";
 import MobileSchedule from "../components/MobileSchedule";
 import { normalizeScheduleEvent } from "../utils/normalizeScheduleEvent";
-import SelectChevron from "../components/SelectChevron";
-import { ChevronDownIcon, CalendarDaysIcon  } from "@heroicons/react/24/outline";
+import { ChevronDownIcon } from "@heroicons/react/24/outline";
 import DateFilter from "../components/DateFilter";
+import { formatDateLabel } from "../utils/dateUtils";
+import { useIsMobile } from "../hooks/useIsMobile";
 
 const ROOM_META = {
   "plenary-amazonas": { capacity: "1600 / 596", area: "Area E" },
@@ -74,7 +75,6 @@ function MultiSelectFilter({ label, options, selected, onChange, allLabel }) {
             {summaryLabel}
           </span>
 
-          {/* setinha alinhada e afastada da borda */}
           <span
             aria-hidden="true"
             className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-500"
@@ -164,17 +164,13 @@ function SingleSelectFilter({ label, options, value, onChange, Icon }) {
         >
           <div className="flex items-center gap-2">
             {Icon && (
-              <Icon
-                className="w-4 h-4 text-gray-400"
-                aria-hidden="true"
-              />
+              <Icon className="w-4 h-4 text-gray-400" aria-hidden="true" />
             )}
             <span className="truncate text-xs text-gray-800">
               {currentLabel}
             </span>
           </div>
 
-          {/* setinha igual aos outros dropdowns */}
           <span
             aria-hidden="true"
             className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-500"
@@ -222,76 +218,11 @@ function SingleSelectFilter({ label, options, value, onChange, Icon }) {
   );
 }
 
-
-
-/* -----------------------------
-   FORMATOS DE DATA
------------------------------ */
-function formatDateShort(dateStr) {
-  const [y, m, d] = dateStr.split("-");
-  const months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
-  return `${d} ${months[Number(m) - 1]} ${y}`;
-}
-
-function formatDateLong(dateStr) {
-  const [y, m, d] = dateStr.split("-");
-  const months = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ];
-  const num = Number(d);
-  const suffix =
-    num === 1 || num === 21 || num === 31
-      ? "st"
-      : num === 2 || num === 22
-      ? "nd"
-      : num === 3 || num === 23
-      ? "rd"
-      : "th";
-
-  return `${months[Number(m) - 1]} ${num}${suffix}, ${y}`;
-}
-
 /* -----------------------------
    COMPONENTE PRINCIPAL
 ----------------------------- */
 export default function Schedule() {
-  // Responsividade
-  const [isMobile, setIsMobile] = useState(() =>
-    typeof window !== "undefined"
-      ? window.matchMedia("(max-width: 767px)").matches
-      : false
-  );
-
-  useEffect(() => {
-    const media = window.matchMedia("(max-width: 767px)");
-    const listener = (e) => setIsMobile(e.matches);
-    media.addEventListener("change", listener);
-    return () => media.removeEventListener("change", listener);
-  }, []);
+  const isMobile = useIsMobile();
 
   // Normalização
   const normalized = useMemo(
@@ -301,14 +232,9 @@ export default function Schedule() {
 
   const allDates = [...new Set(normalized.map((ev) => ev.date))];
 
-  const dateOptions = allDates.map((d) => ({
-    value: d,
-    label: formatDateShort(d),
-  }));
-
   const [date, setDate] = useState(allDates[0] || "");
-  const [roomFilter, setRoomFilter] = useState([]); // multi
-  const [typeFilter, setTypeFilter] = useState([]); // multi
+  const [roomFilter, setRoomFilter] = useState([]);
+  const [typeFilter, setTypeFilter] = useState([]);
   const [securityFilter, setSecurityFilter] = useState("all");
   const [recordOnly, setRecordOnly] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(true);
@@ -359,14 +285,7 @@ export default function Schedule() {
 
       return true;
     });
-  }, [
-    normalized,
-    date,
-    roomFilter,
-    typeFilter,
-    securityFilter,
-    recordOnly,
-  ]);
+  }, [normalized, date, roomFilter, typeFilter, securityFilter, recordOnly]);
 
   // Monta estrutura por sala
   const scheduleData = useMemo(() => {
@@ -395,7 +314,7 @@ export default function Schedule() {
     return arr;
   }, [filteredEvents]);
 
-  const dateLabel = date ? formatDateLong(date) : "";
+  const dateLabel = date ? formatDateLabel(date) : "";
   const hasEvents = scheduleData.length > 0;
 
   const clearFilters = () => {
@@ -406,8 +325,8 @@ export default function Schedule() {
   };
 
   const securityOptions = [
-    { value: "all",        label: "All" },
-    { value: "open",       label: "Open" },
+    { value: "all", label: "All" },
+    { value: "open", label: "Open" },
     { value: "restricted", label: "Restricted" },
   ];
 
@@ -426,26 +345,26 @@ export default function Schedule() {
       {/* Layout filtros + timeline */}
       <div
         className={`
-        flex flex-col xl:flex-row
-        transition-all duration-700 ease-in-out
-        ${filtersOpen ? "gap-6" : "gap-0"}
-      `}
+          flex flex-col xl:flex-row
+          transition-all duration-700 ease-in-out
+          ${filtersOpen ? "gap-6" : "gap-0"}
+        `}
       >
         {/* ----------- FILTROS ----------- */}
         {(!isMobile || filtersOpen) && (
           <aside
-             className={`
-                bg-white rounded-lg shadow-sm h-fit shrink-0
-                overflow-visible
-                transition-[width,opacity,padding,border] duration-500 ease-in-out
-                w-full
-                xl:sticky xl:top-6
-                ${
-                  filtersOpen
-                    ? "xl:w-72 xl:opacity-100 p-6 xl:p-6 xl:border xl:border-gray-200"
-                    : "xl:w-0 xl:opacity-0 xl:p-0 xl:border-0 xl:shadow-none xl:pointer-events-none"
-                }
-              `}
+            className={`
+              bg-white rounded-lg shadow-sm h-fit shrink-0
+              overflow-visible
+              transition-[width,opacity,padding,border] duration-500 ease-in-out
+              w-full
+              xl:sticky xl:top-6
+              ${
+                filtersOpen
+                  ? "xl:w-72 xl:opacity-100 p-6 xl:p-6 xl:border xl:border-gray-200"
+                  : "xl:w-0 xl:opacity-0 xl:p-0 xl:border-0 xl:shadow-none xl:pointer-events-none"
+              }
+            `}
           >
             {filtersOpen && (
               <div
@@ -514,13 +433,13 @@ export default function Schedule() {
                   onChange={setSecurityFilter}
                 />
 
-
                 {/* Recording only */}
-                <label className="flex items-center gap-2">
+                <label className="flex items-center gap-2 text-xs text-gray-700">
                   <input
                     type="checkbox"
                     checked={recordOnly}
                     onChange={(e) => setRecordOnly(e.target.checked)}
+                    className="rounded border-gray-300 text-[#003366] focus:ring-[#003366]"
                   />
                   Recording required only
                 </label>

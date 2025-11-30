@@ -1,5 +1,5 @@
 // src/pages/Meetings.jsx
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { scheduleEvents } from "../data/schedule";
 import PopupDetails from "../components/PopupDetails.jsx";
 import EventCard from "../components/EventCard.jsx";
@@ -9,13 +9,17 @@ import { ChevronDownIcon } from "@heroicons/react/24/outline";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
-import { ArrowDownTrayIcon, DocumentTextIcon } from "@heroicons/react/24/outline";
-
+import {
+  ArrowDownTrayIcon,
+  DocumentTextIcon,
+} from "@heroicons/react/24/outline";
+import { formatDateLabel, formatDateRangeLabel } from "../utils/dateUtils";
+import { useIsMobile } from "../hooks/useIsMobile";
 
 const meetings = scheduleEvents.map(normalizeScheduleEvent);
 
 /* --------------------------------
-   MultiSelectFilter (Room / Type) – mesmo estilo da Schedule
+   MultiSelectFilter (Room / Type)
 -----------------------------------*/
 function MultiSelectFilter({ label, options, selected, onChange, allLabel }) {
   const [open, setOpen] = useState(false);
@@ -64,7 +68,6 @@ function MultiSelectFilter({ label, options, selected, onChange, allLabel }) {
             {summaryLabel}
           </span>
 
-          {/* setinha alinhada e afastada da borda */}
           <span
             aria-hidden="true"
             className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-500"
@@ -120,7 +123,7 @@ function MultiSelectFilter({ label, options, selected, onChange, allLabel }) {
 }
 
 /* --------------------------------
-   SingleSelectFilter (Security) – igual Schedule
+   SingleSelectFilter (Security)
 -----------------------------------*/
 function SingleSelectFilter({ label, options, value, onChange }) {
   const [open, setOpen] = useState(false);
@@ -207,42 +210,10 @@ function SingleSelectFilter({ label, options, value, onChange }) {
 }
 
 /* --------------------------------
-   Helpers de data
------------------------------------*/
-function formatDateLabel(dateStr) {
-  if (!dateStr) return "";
-  const [y, m, d] = dateStr.split("-"); // "2025-11-18"
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  return `${d} ${months[Number(m) - 1]} ${y}`;
-}
-
-function formatDateRangeLabel(start, end) {
-  if (!start && !end) return "";
-  if (start === end) return formatDateLabel(start);
-  if (!start) return `until ${formatDateLabel(end)}`;
-  if (!end) return `from ${formatDateLabel(start)}`;
-  return `${formatDateLabel(start)} – ${formatDateLabel(end)}`;
-}
-
-/* --------------------------------
    Componente principal
 -----------------------------------*/
 export default function Meetings() {
-  // Responsividade
-  const [isMobile, setIsMobile] = useState(() =>
-    typeof window !== "undefined"
-      ? window.matchMedia("(max-width: 767px)").matches
-      : false
-  );
-
-  useEffect(() => {
-    const media = window.matchMedia("(max-width: 767px)");
-    const listener = (e) => setIsMobile(e.matches);
-    media.addEventListener("change", listener);
-    return () => media.removeEventListener("change", listener);
-  }, []);
-
+  const isMobile = useIsMobile();
   const [filtersOpen, setFiltersOpen] = useState(true);
 
   // Datas + filtros
@@ -296,8 +267,8 @@ export default function Meetings() {
   );
 
   const securityOptions = [
-    { value: "all",        label: "All levels" },
-    { value: "open",       label: "Open" },
+    { value: "all", label: "All levels" },
+    { value: "open", label: "Open" },
     { value: "restricted", label: "Restricted" },
   ];
 
@@ -320,7 +291,7 @@ export default function Meetings() {
     });
   }, [startDate, endDate, roomFilter, typeFilter, securityFilter, searchTerm]);
 
- // Gera linhas formatadas para export (PDF / Excel)
+  // Gera linhas formatadas para export (PDF / Excel)
   const exportRows = useMemo(() => {
     return filtered.map((m, idx) => {
       const start = new Date(m.start);
@@ -349,7 +320,7 @@ export default function Meetings() {
     });
   }, [filtered]);
 
-    const handleExportExcel = () => {
+  const handleExportExcel = () => {
     if (!exportRows.length) return;
 
     const worksheet = XLSX.utils.json_to_sheet(exportRows);
@@ -363,7 +334,7 @@ export default function Meetings() {
     XLSX.writeFile(workbook, filename);
   };
 
-    const handleExportPDF = () => {
+  const handleExportPDF = () => {
     if (!exportRows.length) return;
 
     const doc = new jsPDF("l", "pt", "A4"); // landscape
@@ -421,56 +392,55 @@ export default function Meetings() {
     <div className="w-full max-w-[1600px] mx-auto px-6 py-6">
       {/* Header */}
       <header className="mb-4 flex w-full flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-  {/* Bloco título + subtítulo */}
-  <div className="flex-1 min-w-0">
-    <h1 className="text-lg font-semibold text-gray-900">Meetings</h1>
-    <p className="text-sm text-gray-600">
-      Tabular or card view of meetings for{" "}
-      <span className="font-semibold">
-        {dateRangeLabel || "the selected period"}
-      </span>
-      .
-    </p>
-  </div>
+        {/* Bloco título + subtítulo */}
+        <div className="flex-1 min-w-0">
+          <h1 className="text-lg font-semibold text-gray-900">Meetings</h1>
+          <p className="text-sm text-gray-600">
+            Tabular or card view of meetings for{" "}
+            <span className="font-semibold">
+              {dateRangeLabel || "the selected period"}
+            </span>
+            .
+          </p>
+        </div>
 
-  {/* Botões de export – não encolhem, ficam à direita no desktop */}
-  <div className="flex items-center gap-2 flex-shrink-0">
-    <button
-      type="button"
-      onClick={handleExportPDF}
-      className="
-        inline-flex items-center gap-1
-        rounded-full border border-gray-300
-        px-3 py-1 text-xs font-medium
-        text-[#003366] bg-white
-        hover:bg-[#003366] hover:text-white
-        focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[#003366]
-      "
-    >
-      <DocumentTextIcon className="w-4 h-4" aria-hidden="true" />
-      <span className="hidden sm:inline">Export PDF</span>
-      <span className="sm:hidden">PDF</span>
-    </button>
+        {/* Botões de export */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <button
+            type="button"
+            onClick={handleExportPDF}
+            className="
+              inline-flex items-center gap-1
+              rounded-full border border-gray-300
+              px-3 py-1 text-xs font-medium
+              text-[#003366] bg-white
+              hover:bg-[#003366] hover:text-white
+              focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[#003366]
+            "
+          >
+            <DocumentTextIcon className="w-4 h-4" aria-hidden="true" />
+            <span className="hidden sm:inline">Export PDF</span>
+            <span className="sm:hidden">PDF</span>
+          </button>
 
-    <button
-      type="button"
-      onClick={handleExportExcel}
-      className="
-        inline-flex items-center gap-1
-        rounded-full border border-gray-300
-        px-3 py-1 text-xs font-medium
-        text-[#003366] bg-white
-        hover:bg-[#003366] hover:text-white
-        focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[#003366]
-      "
-    >
-      <ArrowDownTrayIcon className="w-4 h-4" aria-hidden="true" />
-      <span className="hidden sm:inline">Export XLSX</span>
-      <span className="sm:hidden">XLSX</span>
-    </button>
-  </div>
-</header>
-
+          <button
+            type="button"
+            onClick={handleExportExcel}
+            className="
+              inline-flex items-center gap-1
+              rounded-full border border-gray-300
+              px-3 py-1 text-xs font-medium
+              text-[#003366] bg-white
+              hover:bg-[#003366] hover:text-white
+              focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[#003366]
+            "
+          >
+            <ArrowDownTrayIcon className="w-4 h-4" aria-hidden="true" />
+            <span className="hidden sm:inline">Export XLSX</span>
+            <span className="sm:hidden">XLSX</span>
+          </button>
+        </div>
+      </header>
 
       {/* Layout filtros + conteúdo */}
       <div
@@ -487,7 +457,7 @@ export default function Meetings() {
               bg-white rounded-lg shadow-sm h-fit shrink-0 
               transition-[width,opacity,padding,border] duration-500 ease-in-out
               w-full
-              xl:sticky xl:top-6
+              lg:sticky lg:top-6
               ${
                 filtersOpen
                   ? "xl:w-72 xl:opacity-100 p-6 xl:p-6 xl:border xl:border-gray-200"
@@ -530,7 +500,7 @@ export default function Meetings() {
                   </button>
                 </div>
 
-                {/* Start date – usando o mesmo DateFilter do Schedule */}
+                {/* Start date */}
                 <DateFilter
                   label="Start date"
                   value={startDate}
@@ -567,7 +537,7 @@ export default function Meetings() {
                   allLabel="All types"
                 />
 
-                {/* Security – usando SingleSelectFilter */}
+                {/* Security */}
                 <SingleSelectFilter
                   label="Security"
                   options={securityOptions}
@@ -611,7 +581,7 @@ export default function Meetings() {
           )}
 
           {/* Barra de contagem + modo de visualização + busca */}
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-sm">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-sm">
             {/* Contagem */}
             <span className="text-xs text-gray-600" aria-live="polite">
               Showing{" "}
@@ -619,7 +589,7 @@ export default function Meetings() {
               {filtered.length === 1 ? "meeting" : "meetings"}.
             </span>
 
-            {/* Direita: busca + toggle + export */}
+            {/* Direita: busca + toggle */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
               {/* Busca por título */}
               <div className="flex-1 sm:flex-none">
@@ -637,7 +607,10 @@ export default function Meetings() {
               </div>
 
               {/* Divisor */}
-              <div aria-hidden="true" className="hidden sm:block w-px h-6 bg-gray-300" />
+              <div
+                aria-hidden="true"
+                className="hidden sm:block w-px h-6 bg-gray-300"
+              />
 
               {/* Toggle Table/Cards – desktop */}
               <div className="segmented-toggle hidden md:inline-flex rounded-full border border-gray-300 overflow-hidden">
@@ -668,7 +641,6 @@ export default function Meetings() {
               </div>
             </div>
           </div>
-
 
           {/* Bloco principal */}
           <div
@@ -723,10 +695,13 @@ export default function Meetings() {
                         {filtered.map((m, idx) => {
                           const start = new Date(m.start);
                           const end = new Date(m.end);
-                          const timeStart = start.toLocaleTimeString("en-GB", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          });
+                          const timeStart = start.toLocaleTimeString(
+                            "en-GB",
+                            {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            }
+                          );
                           const timeEnd = end.toLocaleTimeString("en-GB", {
                             hour: "2-digit",
                             minute: "2-digit",
