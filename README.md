@@ -124,7 +124,7 @@ src/
 
 ## 📦 Installation & Setup
 
-# Clone the repository
+### Clone the repository
 ```bash
 git clone https://github.com/Lincoln-Araujo/grandreserve-ui-ux-redesign.git
 cd grandreserve-ui-ux-redesign
