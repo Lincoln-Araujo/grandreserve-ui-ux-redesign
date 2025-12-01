@@ -273,23 +273,33 @@ export default function Meetings() {
   ];
 
   // Aplicação de filtros
-  const filtered = useMemo(() => {
-    const term = searchTerm.trim().toLowerCase();
+ const filtered = useMemo(() => {
+  const term = searchTerm.trim().toLowerCase();
 
-    return meetings.filter((m) => {
-      if (startDate && m.date < startDate) return false;
-      if (endDate && m.date > endDate) return false;
+  const result = meetings.filter((m) => {
+    if (startDate && m.date < startDate) return false;
+    if (endDate && m.date > endDate) return false;
 
-      if (roomFilter.length && !roomFilter.includes(m.roomId)) return false;
-      if (typeFilter.length && !typeFilter.includes(m.type)) return false;
-      if (securityFilter !== "all" && m.security !== securityFilter)
-        return false;
+    if (roomFilter.length && !roomFilter.includes(m.roomId)) return false;
+    if (typeFilter.length && !typeFilter.includes(m.type)) return false;
+    if (securityFilter !== "all" && m.security !== securityFilter)
+      return false;
 
-      if (term && !m.title.toLowerCase().includes(term)) return false;
+    if (term && !m.title.toLowerCase().includes(term)) return false;
 
-      return true;
-    });
-  }, [startDate, endDate, roomFilter, typeFilter, securityFilter, searchTerm]);
+    return true;
+  });
+
+  // Ordena por data e depois por horário de início
+  return result.sort((a, b) => {
+    if (a.date < b.date) return -1;
+    if (a.date > b.date) return 1;
+
+    // mesma data → ordena por hora de início
+    return new Date(a.start) - new Date(b.start);
+  });
+}, [startDate, endDate, roomFilter, typeFilter, securityFilter, searchTerm]);
+
 
   // Gera linhas formatadas para export (PDF / Excel)
   const exportRows = useMemo(() => {
@@ -457,7 +467,7 @@ export default function Meetings() {
               bg-white rounded-lg shadow-sm h-fit shrink-0 
               transition-[width,opacity,padding,border] duration-500 ease-in-out
               w-full
-              lg:sticky lg:top-6
+              static md:sticky md:top-6
               ${
                 filtersOpen
                   ? "xl:w-72 xl:opacity-100 p-6 xl:p-6 xl:border xl:border-gray-200"

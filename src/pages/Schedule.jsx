@@ -358,7 +358,7 @@ export default function Schedule() {
               overflow-visible
               transition-[width,opacity,padding,border] duration-500 ease-in-out
               w-full
-              xl:sticky xl:top-6
+              static md:sticky md:top-6
               ${
                 filtersOpen
                   ? "xl:w-72 xl:opacity-100 p-6 xl:p-6 xl:border xl:border-gray-200"
