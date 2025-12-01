@@ -235,7 +235,7 @@ export default function Header() {
                       
                       fixed inset-x-4 top-24 max-h-[70vh]
                       
-                      sm:absolute sm:right-0 sm:top-auto sm:mt-3
+                      sm:absolute sm:inset-auto sm:right-0 sm:top-auto sm:mt-3
                       sm:w-[min(90vw,22rem)] sm:max-h-60 sm:translate-y-0
                     `}
                   >
