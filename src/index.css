@@ -22,7 +22,6 @@ body {
   box-shadow: none !important;
 }
 
-/* Barra de rolagem mais discreta */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -33,4 +32,25 @@ body {
 ::-webkit-scrollbar-thumb {
   background: #9ca3af;
   border-radius: 4px;
+}
+
+@keyframes notif-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.notif-enter {
+  animation: notif-pop 0.18s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notif-enter {
+    animation: none;
+  }
 }

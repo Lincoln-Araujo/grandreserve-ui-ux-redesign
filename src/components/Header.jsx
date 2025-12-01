@@ -214,124 +214,126 @@ export default function Header() {
 
                 {/* Dropdown de notificações */}
                 {showNotifications && (
-                <>
-                  <div
-                    className="fixed inset-0 bg-black/30 sm:hidden z-[9990]"
-                    onClick={() => {
-                      setShowNotifications(false);
-                      setHasUnread(false);
-                    }}
-                  />
-                  <div
-                    role="status"
-                    aria-label="Recent schedule changes"
-                    className={`
-                      bg-white text-gray-900 rounded-2xl border border-slate-200
-                      shadow-[0_20px_60px_rgba(15,23,42,0.35)]
-                      ring-1 ring-black/5 z-[9999] overflow-hidden
+                <div
+                  className="fixed inset-0 bg-black/30 sm:hidden z-[9990] backdrop-blur-[1px]"
+                  onClick={() => {
+                    setShowNotifications(false);
+                    setHasUnread(false);
+                    markAllAsRead();
+                  }}
+                  aria-hidden="true"
+                />
+              )}
+
+              {/* DROPDOWN DE NOTIFICAÇÕES */}
+              {showNotifications && (
+                <div
+                  role="status"
+                  aria-label="Recent schedule changes"
+                  className={`
+                    notif-enter
+                    bg-white text-gray-900 
+                    rounded-2xl border border-slate-200
+                    shadow-[0_20px_60px_rgba(15,23,42,0.35)]
+                    ring-1 ring-black/5
+                    overflow-hidden
+                    z-[9999]
+
+                    fixed inset-x-4 top-24 max-h-[70vh]
                       
-                      transition-all duration-500 ease-out
-                      opacity-100 translate-y-0
-                      
-                      fixed inset-x-4 top-24 max-h-[70vh]
-                      
-                      sm:absolute sm:inset-auto sm:right-0 sm:top-auto sm:mt-3
-                      sm:w-[min(90vw,22rem)] sm:max-h-60 sm:translate-y-0
-                    `}
-                  >
-                    {/* Cabeçalho */}
-                    <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-                      <span className="text-xs font-semibold text-gray-700">
-                        Recent updates
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setShowNotifications(false);
-                          markAllAsRead();
-                        }}
-                        className="p-1 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#003366]"
-                        aria-label="Close notifications"
-                      >
-                        <XMarkIcon className="w-4 h-4 text-gray-500" />
-                      </button>
-                    </div>
+                    sm:absolute sm:inset-auto sm:right-0 sm:top-auto sm:mt-3
+                    sm:w-[min(90vw,22rem)] sm:max-h-70 sm:translate-y-0
+                  `}
+                >
+                  {/* Cabeçalho */}
+                  <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+                    <span className="text-xs font-semibold text-gray-700">
+                      Recent updates
+                    </span>
 
-                    {/* Lista agrupada */}
-                    <ul className="text-[13px] max-h-[60vh] sm:max-h-60 overflow-y-auto">
-                      {["Today", "Yesterday"].map((groupLabel) => {
-                        const groupItems = notifications.filter(
-                          (n) => n.group === groupLabel
-                        );
-                        if (!groupItems.length) return null;
-
-                        return (
-                          <li key={groupLabel}>
-                            <div className="px-4 pt-3 pb-1 border-b border-gray-100 bg-gray-50">
-                              <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                                {groupLabel}
-                              </span>
-                            </div>
-
-                            <ul>
-                              {groupItems.map((notif) => {
-                                const isHighlighted =
-                                  notif.isNew &&
-                                  (hasUnread || showNotifications);
-
-                                return (
-                                  <li
-                                    key={notif.id}
-                                    className={`
-                                      px-4 py-2.5 border-b border-gray-200 last:border-b-0
-                                      ${
-                                        isHighlighted
-                                          ? "bg-amber-50"
-                                          : "bg-white"
-                                      }
-                                    `}
-                                  >
-                                    <div className="flex items-start justify-between gap-3">
-                                      <div className="flex-1">
-                                        <p
-                                          className={`leading-snug ${
-                                            isHighlighted
-                                              ? "text-gray-900"
-                                              : "text-gray-600"
-                                          }`}
-                                        >
-                                          {notif.content}
-                                        </p>
-                                        <p className="mt-1 text-[11px] text-gray-400">
-                                          {notif.time}
-                                        </p>
-                                      </div>
-
-                                      {isHighlighted && (
-                                        <span
-                                          className="
-                                            ml-2 mt-0.5 inline-flex items-center
-                                            rounded-full px-2 py-0.5
-                                            text-[11px] font-medium
-                                            bg-amber-100 text-amber-900
-                                            border border-amber-200
-                                          "
-                                        >
-                                          New
-                                        </span>
-                                      )}
-                                    </div>
-                                  </li>
-                                );
-                              })}
-                            </ul>
-                          </li>
-                        );
-                      })}
-                    </ul>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowNotifications(false);
+                        setHasUnread(false);
+                        markAllAsRead();
+                      }}
+                      className="p-1 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#003366]"
+                      aria-label="Close notifications"
+                    >
+                      <XMarkIcon className="w-4 h-4 text-gray-500" />
+                    </button>
                   </div>
-                </>    
-                )}
+
+                  {/* Lista agrupada (pode manter exatamente como já estava) */}
+                  <ul className="text-[13px] max-h-[60vh] sm:max-h-60 overflow-y-auto">
+                    {["Today", "Yesterday"].map((groupLabel) => {
+                      const groupItems = notifications.filter(
+                        (n) => n.group === groupLabel
+                      );
+                      if (!groupItems.length) return null;
+
+                      return (
+                        <li key={groupLabel}>
+                          <div className="px-4 pt-3 pb-1 border-b border-gray-100 bg-gray-50">
+                            <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                              {groupLabel}
+                            </span>
+                          </div>
+
+                          <ul>
+                            {groupItems.map((notif) => {
+                              const isHighlighted =
+                                notif.isNew && (hasUnread || showNotifications);
+
+                              return (
+                                <li
+                                  key={notif.id}
+                                  className={`
+                                    px-4 py-2.5 border-b border-gray-200 last:border-b-0
+                                    ${isHighlighted ? "bg-amber-50" : "bg-white"}
+                                  `}
+                                >
+                                  <div className="flex items-start justify-between gap-3">
+                                    <div className="flex-1">
+                                      <p
+                                        className={`leading-snug ${
+                                          isHighlighted
+                                            ? "text-gray-900"
+                                            : "text-gray-600"
+                                        }`}
+                                      >
+                                        {notif.content}
+                                      </p>
+                                      <p className="mt-1 text-[11px] text-gray-400">
+                                        {notif.time}
+                                      </p>
+                                    </div>
+
+                                    {isHighlighted && (
+                                      <span
+                                        className="
+                                          ml-2 mt-0.5 inline-flex items-center
+                                          rounded-full px-2 py-0.5
+                                          text-[11px] font-medium
+                                          bg-amber-100 text-amber-900
+                                          border border-amber-200
+                                        "
+                                      >
+                                        New
+                                      </span>
+                                    )}
+                                  </div>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
               </div>
 
               {/* Usuário */}
