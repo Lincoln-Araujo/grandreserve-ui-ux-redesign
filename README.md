@@ -134,16 +134,19 @@ cd grandreserve-ui-ux-redesign
 ```bash
 npm install
 ```
-```bash
+
 # Run development server
+```bash
 npm run dev
 ```
-```bash
+
 # Build for production
+```bash
 npm run build
 ```
-```bash
+
 # Preview the production build
+```bash
 npm run preview
 ```
 ---
