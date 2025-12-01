@@ -214,17 +214,30 @@ export default function Header() {
 
                 {/* Dropdown de notificações */}
                 {showNotifications && (
+                <>
                   <div
-                    className="
-                      absolute right-0 mt-3 w-[min(90vw,22rem)]
-                      bg-white text-gray-900
-                      rounded-2xl border border-slate-200
-                      shadow-[0_20px_60px_rgba(15,23,42,0.35)]
-                      ring-1 ring-black/5
-                      z-[9999] overflow-hidden
-                    "
+                    className="fixed inset-0 bg-black/30 sm:hidden z-[9990]"
+                    onClick={() => {
+                      setShowNotifications(false);
+                      setHasUnread(false);
+                    }}
+                  />
+                  <div
                     role="status"
                     aria-label="Recent schedule changes"
+                    className={`
+                      bg-white text-gray-900 rounded-2xl border border-slate-200
+                      shadow-[0_20px_60px_rgba(15,23,42,0.35)]
+                      ring-1 ring-black/5 z-[9999] overflow-hidden
+                      
+                      transition-all duration-500 ease-out
+                      opacity-100 translate-y-0
+                      
+                      fixed inset-x-4 top-24 max-h-[70vh]
+                      
+                      sm:absolute sm:right-0 sm:top-auto sm:mt-3
+                      sm:w-[min(90vw,22rem)] sm:max-h-60 sm:translate-y-0
+                    `}
                   >
                     {/* Cabeçalho */}
                     <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
@@ -245,7 +258,7 @@ export default function Header() {
                     </div>
 
                     {/* Lista agrupada */}
-                    <ul className="text-[13px] max-h-60 overflow-y-auto">
+                    <ul className="text-[13px] max-h-[60vh] sm:max-h-60 overflow-y-auto">
                       {["Today", "Yesterday"].map((groupLabel) => {
                         const groupItems = notifications.filter(
                           (n) => n.group === groupLabel
@@ -317,6 +330,7 @@ export default function Header() {
                       })}
                     </ul>
                   </div>
+                </>    
                 )}
               </div>
 
