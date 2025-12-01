@@ -145,9 +145,9 @@ npm run dev
 npm run build
 ```
 
-### Preview the production build
+### Access the link
 ```bash
-npm run preview
+http://localhost:5173/
 ```
 ---
 
