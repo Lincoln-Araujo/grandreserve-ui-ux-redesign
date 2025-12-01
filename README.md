@@ -226,10 +226,7 @@ Includes several improvements:
 
 ## 📌 Project Overview
 
-```
-public/meetings.png
-
-```
+![Project Banner](./public/meetings.png)
 
 ---
 
