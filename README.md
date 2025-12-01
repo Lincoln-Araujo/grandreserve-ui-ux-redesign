@@ -130,22 +130,22 @@ git clone https://github.com/Lincoln-Araujo/grandreserve-ui-ux-redesign.git
 cd grandreserve-ui-ux-redesign
 ```
 
-# Install dependencies
+### Install dependencies
 ```bash
 npm install
 ```
 
-# Run development server
+### Run development server
 ```bash
 npm run dev
 ```
 
-# Build for production
+### Build for production
 ```bash
 npm run build
 ```
 
-# Preview the production build
+### Preview the production build
 ```bash
 npm run preview
 ```
