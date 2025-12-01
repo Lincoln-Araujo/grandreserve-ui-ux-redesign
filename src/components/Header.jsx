@@ -203,11 +203,11 @@ export default function Header() {
                 {hasUnread && unreadCount > 0 && (
                   <div className="hidden sm:block absolute top-8 right-1 pointer-events-none z-30">
                     <div className="relative inline-flex items-center">
-                      <div className="flex gap-1 bg-amber-400/90 text-[#3b2b00] text-[9px] font-medium rounded-full px-2 py-0 shadow-md whitespace-nowrap backdrop-blur-[1px] bg-opacity-[0.8]">
+                      <div className="flex gap-1 bg-amber-400 text-[#3b2b00] text-[10px] font-medium rounded-full px-2 py-0 shadow-md whitespace-nowrap">
                         <div className="font-bold">{unreadCount}</div>
                         events had updates
                       </div>
-                      <div className="absolute top-0 right-4 -translate-y-1/2 w-2 h-2 bg-amber-400/90 rotate-45" />
+                      <div className="absolute top-0 right-4 -translate-y-1/2 w-2 h-2 bg-amber-400 rotate-45" />
                     </div>
                   </div>
                 )}
