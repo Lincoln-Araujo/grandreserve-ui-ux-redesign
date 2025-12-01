@@ -1,145 +1,292 @@
-# GrandReserva UI/UX Redesign Proposal
+# GrandReserva — UI/UX Redesign Prototype
 
-A modern and streamlined UI/UX redesign proposal for the UNFCCC GrandReserva event reservation system.  
-This project introduces a refreshed visual identity, improved navigation patterns, accessibility enhancements, and a more intuitive experience for users interacting with the reservation platform.
+![Project Banner](./public/banner-placeholder.png)
+<!-- Substitua por um banner real depois -->
 
-## 📌 Overview
+A modern, accessible, and high-performance redesign of the **UNFCCC GrandReserva** scheduling system — built from scratch in React + Vite, featuring a new **Meetings view**, **Schedule timeline**, **advanced filtering**, and several UX innovations that drastically improve the user experience for monitoring conference events.
 
-GrandReserva is an internal tool used by the UNFCCC for managing event reservations during conferences and official activities.  
-This redesign focuses on improving clarity, usability, and workflow efficiency through a modern visual structure, simplified user flows, and refined interface components.
-
-### Goals of the redesign:
-- Modernize the interface and visual language  
-- Reduce cognitive load  
-- Improve navigation and consistency  
-- Strengthen accessibility and readability  
-- Provide a scalable UI foundation for future improvements  
-
-This repository contains prototypes, interface concepts, and visual documentation created for presentation and demonstration purposes.
+**Status:** Prototype  
+**Author:** **Lincoln Araújo – UX Engineer & Front-End Developer**  
 
 ---
 
-## 🧰 How to Run Locally
+## 🚀 Features
 
-### 1. Clone the repository
-```bash
-git clone https://github.com/Lincoln-Araujo/grandreserve-ui-ux-redesign.git
+### 📅 **Meetings — Data View**
+A fully redesigned meetings interface powered by advanced filtering and flexible visualization:
+
+- **Table or Card mode** (user-controlled)
+- **Search by event name**
+- **Multi-select filters:** Room, Type  
+- **Single-select filters:** Security level  
+- **Date range filters**  
+- **Export to PDF and XLSX**  
+- **Updated event notification badge**  
+- **Accessible navigable table (keyboard-friendly)**  
+- **Responsive layout (mobile → cards automatically)**
+
+---
+
+### 🗂 **Schedule — Timeline View**
+A detailed timeline grouped by rooms and ordered by time:
+
+- Automatic sorting by **date + start time**
+- Room-based grouping with metadata (Area, Capacity)
+- Mobile-optimized compact schedule
+- Desktop timeline visualization
+- Optional filter: **Recording required only**
+- Smooth collapsible filter sidebar
+
+---
+
+## 🎯 UX/UI Innovations Introduced
+
+### **1) Updated Event Highlight**
+Events marked with `"updated": true` receive a visual highlight:
+- Amber left-border  
+- Amber background  
+- Helps users identify schedule changes at a glance
+
+### **2) Search Bar in Meetings**
+Users can filter meetings **instantly by title**, improving discoverability in large schedules.
+
+### **3) Table ↔ Card View Toggle**
+The Meetings page includes a segmented toggle that allows switching between:
+- **Table view** (dense, analytical)
+- **Card view** (visual, mobile-friendly)
+
+Both modes fully respect filters and accessibility.
+
+---
+
+## 🧠 Architecture Overview
+
+```
+src/
+├── components/
+│   ├── EventCard.jsx
+│   ├── PopupDetails.jsx
+│   ├── Timeline.jsx
+│   ├── MobileSchedule.jsx
+│   ├── DateFilter.jsx
+│   └── (MultiSelectFilter & SingleSelectFilter inside pages)
+│
+├── data/
+│   └── schedule.js
+│
+├── hooks/
+│   └── useIsMobile.jsx
+│
+├── pages/
+│   ├── Meetings.jsx
+│   └── Schedule.jsx
+│
+├── utils/
+│   ├── dateUtils.js
+│   └── normalizeScheduleEvent.js
+│
+└── App.jsx
 ```
 
-### 2. Enter the project folder
+---
+
+## 🛠 Technologies Used
+
+### **Frontend**
+- React 19  
+- Vite  
+- React Router  
+- Tailwind CSS  
+- Headless UI  
+- Heroicons / Lucide Icons  
+
+### **Exports**
+- **jsPDF + autoTable** (PDF)
+- **xlsx** (Excel)
+
+### **Other**
+- React DayPicker  
+- Custom hook (`useIsMobile`)
+
+---
+
+## 🎨 UI/UX Principles Applied
+
+- Clean neutral color palette aligned with **UNFCCC blue**  
+- High contrast and accessible focus states  
+- Responsive-first layout (mobile → desktop)  
+- Sticky filters on larger screens  
+- Smooth transitions with Tailwind  
+- Clear hierarchy of content  
+- Unified card/table/timeline design language  
+
+---
+
+## 📦 Installation & Setup
+
+# Clone the repository
 ```bash
+git clone https://github.com/Lincoln-Araujo/grandreserve-ui-ux-redesign.git
 cd grandreserve-ui-ux-redesign
 ```
 
-### 3. Install dependencies
+# Install dependencies
 ```bash
 npm install
 ```
-
-### 4. Start the development server
 ```bash
-npm start
+# Run development server
+npm run dev
 ```
-
-### 5. Open in your browser
+```bash
+# Build for production
+npm run build
 ```
-http://localhost:3000
+```bash
+# Preview the production build
+npm run preview
 ```
-
 ---
 
-## 🎨 Key Improvements
+## 🧪 Project Scripts
 
-### 1. Updated Visual Layout
-- Clean, modular structure  
-- Better spacing and hierarchy  
-- Consistent typography across screens  
-
-### 2. Enhanced Navigation
-- Clear section separation  
-- Simplified flows for core tasks  
-- Reduced clutter and decision fatigue  
-
-### 3. Accessibility Enhancements
-- Higher contrast  
-- Larger interaction areas  
-- Clear labels and iconography  
-
-### 4. Component Redesign
-- Reusable cards  
-- Standardized form elements  
-- Improved tables and data presentation  
-
----
-
-## 🧩 Project Structure
-
-```
-/design
-  ├── wireframes/
-  ├── mockups/
-  ├── components/
-  └── flows/
-/docs
-/screens
-/src (optional)
-/README.md
+```jsonc
+"dev": "vite",
+"build": "vite build",
+"preview": "vite preview",
+"lint": "eslint ."
 ```
 
 ---
 
-## 🛠 Tools & Technologies
+## 🏗 Data Pipeline
 
-This redesign was created using:
+### **normalizeScheduleEvent()**
+Converts raw schedule items into a predictable format:
 
-- **React** — basic structure and UI scaffolding  
-- **Figma** — interface concept and layout design  
-- **UNFCCC branding references**  
+- Standardized `date`, `start`, `end`
+- Computed sorting fields
+- Cleaned room + type fields
+- Security normalization
+- Boolean flags (e.g., `"updated": true`)
 
-This is a **UI/UX concept project**, and not a functional system implementation.
+### **dateUtils**
+- `formatDateLabel()`
+- `formatDateRangeLabel()`
+
+Used across export, cards, tables and timeline.
 
 ---
 
-## 📸 Screens & Previews
+## 📤 Export Features
+
+### **Export to PDF**
+- Landscape A4  
+- Custom header  
+- AutoTable integration  
+- UN blue header  
+- Clean layout for large datasets  
+
+### **Export to XLSX**
+- Converts filtered rows into a worksheet  
+- Filename automatically generated by date range  
+
+---
+
+## 🎯 Accessibility
+
+Includes several improvements:
+
+- Keyboard navigable filters  
+- Focus rings on all interactive elements  
+- ARIA labels for buttons and rows  
+- Screen-reader-friendly date formats  
+- Clear color contrast  
+- No hidden interactive elements behind transitions  
+
+---
+
+## 📱 Responsive Design
+
+### Mobile:
+- Meetings: card view only  
+- Schedule: compact list  
+- Filters collapse into full-width modal-like panel  
+
+### Desktop:
+- Meetings: card/table toggle  
+- Sticky sidebar  
+- Grid cards layout  
+- Full timeline view  
+
+---
+
+## 📌 Project Overview
 
 ```
-![Home Screen](./screens/home.png)
-![Form Redesign](./screens/form.png)
-![Reservation Flow](./screens/flow.png)
+public/meetings.png
+
 ```
 
 ---
 
-## 📄 Documentation
+## 👤 Author
 
-Included in this repository:
-
-- User flows  
-- Wireframes and mockups  
-- Component definitions  
-- Accessibility notes  
-- Layout studies  
+**Lincoln Araújo**  
+UX Engineer & Front-End Developer  
+Empresa Brasil de Comunicação (EBC)  
+GitHub: https://github.com/Lincoln-Araujo
+LinkedIn: https://www.linkedin.com/in/lincolnaraujo/
 
 ---
 
-## 🤝 About the Author
+## 📚 Case Study — GrandReserva Redesign
 
-Developed by **Lincoln Araújo** — Front-End Developer & UX Engineer at Empresa Brasil de Comunicação (EBC).  
-Focused on designing accessible, modern, and scalable interfaces for institutional and large-scale systems.
+### 1. Context
+UNFCCC relies on GrandReserva to coordinate meetings across large climate conferences.  
+The original UI had limitations in navigation, readability, and event discovery.
 
-- GitHub: https://github.com/Lincoln-Araujo  
-- LinkedIn: https://www.linkedin.com/in/lincoln-araujo  
+### 2. Objective
+Deliver a modernized interface that is:
+- more intuitive  
+- faster to use  
+- more informative  
+- more accessible  
+- visually aligned with UN brand guidelines  
+
+### 3. Problems Identified
+- Hard to find specific meetings  
+- Outdated visual layout  
+- No search bar  
+- No indication of updated events  
+- No alternative visual modes  
+- Timeline lacked clarity  
+
+### 4. Delivered Solution
+
+#### ✔ Modernized Meetings view  
+With filters, search, exports, column hierarchy and toggle view.
+
+#### ✔ New Schedule timeline  
+Timeline grouped by rooms, fully ordered and responsive.
+
+#### ✔ Three UX innovations  
+1. **Updated event notification**  
+2. **Search bar for Meetings**  
+3. **Table ↔ Card visualization toggle**
+
+#### ✔ UI consistent with UNFCCC  
+Using neutral tones, institutional blue (`#003366`) and clean typography.
+
+#### ✔ Smarter filters  
+Sliding/folding sidebar, sticky on desktop, fluid on mobile.
 
 ---
 
-## 📄 License
+### 5. Expected Impact
+- Faster event discovery  
+- Better understanding of long schedules  
+- More modern navigation  
+- Increased efficiency for assistants, teams and delegations  
+- Improved usability across devices (mobile and desktop)  
 
-This repository is shared for **presentation and portfolio purposes only**.  
-Commercial redistribution, replication, or deployment is not permitted.
-
----
-
-## 📝 Notes
-
-This is **not an official UNFCCC implementation**.  
-It is an independent conceptual redesign created for study, demonstration, and UI/UX exploration.
